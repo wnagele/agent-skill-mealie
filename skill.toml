@@ -1,0 +1,85 @@
+[skill]
+name = "mealie"
+description = "Manage Mealie recipe manager — create, search, view, update, and delete recipes; plan meals; list organizers"
+
+[runtime]
+type = "python"
+entry = "scripts/mealie.py"
+
+[[tools.provided]]
+name = "mealie_recipe_create"
+description = "Create a new recipe from JSON"
+input_schema = { type = "object", properties = { source = { type = "string", description = "Recipe JSON data, or path to JSON file, or '-' for stdin" } }, required = ["source"] }
+
+[[tools.provided]]
+name = "mealie_recipe_update"
+description = "Update an existing recipe with partial JSON"
+input_schema = { type = "object", properties = { recipe = { type = "string", description = "Slug, id, or title substring" }, source = { type = "string", description = "Partial JSON data, or path to JSON file, or '-' for stdin" } }, required = ["recipe", "source"] }
+
+[[tools.provided]]
+name = "mealie_recipe_search"
+description = "Search recipes by name, tag, category, or cookbook"
+input_schema = { type = "object", properties = { query = { type = "string", description = "Substring of recipe name (optional)" }, tag = { type = "array", description = "Filter by tags (AND semantics)", items = { type = "string" } }, category = { type = "array", description = "Filter by categories (AND semantics)", items = { type = "string" } }, cookbook = { type = "string", description = "Filter by cookbook name" }, limit = { type = "integer", description = "Max results (default 20)" } } }
+
+[[tools.provided]]
+name = "mealie_recipe_show"
+description = "Show one recipe"
+input_schema = { type = "object", properties = { recipe = { type = "string", description = "Slug, id, or title substring" }, json = { type = "boolean", description = "Emit raw recipe JSON instead of formatted text" } }, required = ["recipe"] }
+
+[[tools.provided]]
+name = "mealie_recipe_random"
+description = "Pick a random recipe (optionally filtered)"
+input_schema = { type = "object", properties = { tag = { type = "array", description = "Filter by tags", items = { type = "string" } }, category = { type = "array", description = "Filter by categories", items = { type = "string" } } } }
+
+[[tools.provided]]
+name = "mealie_recipe_delete"
+description = "Permanently delete a recipe"
+input_schema = { type = "object", properties = { recipe = { type = "string", description = "Slug, id, or title substring" }, yes = { type = "boolean", description = "Confirm deletion" } }, required = ["recipe"] }
+
+[[tools.provided]]
+name = "mealie_recipe_parse_ingredients"
+description = "Parse freeform ingredient strings via Mealie's parser"
+input_schema = { type = "object", properties = { strings = { type = "array", description = "Ingredient strings, e.g. \"2 cups flour\"", items = { type = "string" } }, parser = { type = "string", description = "Parser to use (server default if omitted)", enum = ["nlp", "brute", "openai"] } }, required = ["strings"] }
+
+[[tools.provided]]
+name = "mealie_mealplan_today"
+description = "Show today's planned meals"
+input_schema = { type = "object", properties = {  } }
+
+[[tools.provided]]
+name = "mealie_mealplan_week"
+description = "Show a 7-day meal plan window"
+input_schema = { type = "object", properties = { start = { type = "string", description = "Start date (YYYY-MM-DD, today, tomorrow, or weekday name)" } } }
+
+[[tools.provided]]
+name = "mealie_mealplan_add"
+description = "Add a meal plan entry"
+input_schema = { type = "object", properties = { date = { type = "string", description = "Date (YYYY-MM-DD, today, tomorrow, or weekday name)" }, type = { type = "string", description = "Meal type", enum = ["breakfast", "lunch", "dinner", "side", "snack", "drink", "dessert"] }, recipe = { type = "string", description = "Recipe slug/title (omit if using --title/--text)" }, title = { type = "string", description = "Free-text entry title" }, text = { type = "string", description = "Free-text entry body" } }, required = ["date", "type"] }
+
+[[tools.provided]]
+name = "mealie_mealplan_random"
+description = "Add a random recipe to the meal plan"
+input_schema = { type = "object", properties = { date = { type = "string", description = "Date (YYYY-MM-DD, today, tomorrow, or weekday name)" }, type = { type = "string", description = "Meal type", enum = ["breakfast", "lunch", "dinner", "side", "snack", "drink", "dessert"] } }, required = ["date", "type"] }
+
+[[tools.provided]]
+name = "mealie_mealplan_delete"
+description = "Delete a meal plan entry by its numeric ID"
+input_schema = { type = "object", properties = { id = { type = "integer", description = "Meal plan entry ID (from mealplan today/week output)" } }, required = ["id"] }
+
+[[tools.provided]]
+name = "mealie_organizers_list"
+description = "List all entries for an organizer kind"
+input_schema = { type = "object", properties = { kind = { type = "string", description = "Organizer type to list", enum = ["tags", "categories", "tools", "foods", "units", "labels", "cookbooks"] }, limit = { type = "integer", description = "Maximum entries to return" } }, required = ["kind"] }
+
+[requirements]
+capabilities = ["NetConnect(*)"]
+pip = ["httpx", "python-dotenv", "agent-skill-handler @ git+https://github.com/wnagele/agent-skill-handler.git"]
+
+[[requirements.env]]
+name = "MEALIE_URL"
+description = "Mealie base URL (e.g. https://mealie.example.com)"
+
+[[requirements.env]]
+name = "MEALIE_API_TOKEN"
+description = "Mealie API token"
+secret = true
