@@ -2,6 +2,16 @@
 name: mealie
 description: Manage Mealie recipe manager - create, search, view, update, and delete recipes; plan meals for the week; list existing tags, categories, foods, and units. Use when the user wants to save a recipe to their Mealie library (you extract the recipe data from URLs/HTML/text yourself, hand the freeform ingredient strings to the skill which parses them via Mealie's own ingredient parser), look up an existing recipe, schedule meals, or view what organizer entries already exist in the database.
 metadata:
+  hermes:
+    required_environment_variables:
+      - name: MEALIE_URL
+        prompt: "Mealie base URL"
+        help: "Full URL to your Mealie instance, e.g. https://mealie.example.com"
+        required_for: "connecting to your Mealie server"
+      - name: MEALIE_API_TOKEN
+        prompt: "Mealie API token"
+        help: "Generate in the Mealie web UI under User Profile → Manage Your API Tokens"
+        required_for: "authenticating to the Mealie API"
   openclaw:
     requires:
       bins:
@@ -45,6 +55,17 @@ Manage Mealie — create and view recipes, plan meals, and list existing organiz
 This skill is a thin wrapper around Mealie's REST API. **Recipe extraction from URLs is NOT done by this skill** — you (the agent) fetch the URL with WebFetch, pick out the recipe fields, and pipe structured JSON to `recipe create`. Ingredients, however, can be passed as **freeform strings** — the skill sends them through Mealie's built-in ingredient parser (`POST /api/parser/ingredients`), which resolves unit and food references against the user's existing database automatically. You do not need to normalize ingredient names yourself.
 
 For tags, categories, tools, units, and foods that don't exist yet, the skill does a **lookup-or-create** pass before writing the recipe: it fetches the current lists, reuses existing entries by exact name, and POSTs anything new to the appropriate `/api/organizers/...`, `/api/units`, or `/api/foods` endpoint.
+
+## Installation
+
+Create a virtualenv in the skill directory and install the required Python packages:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install httpx python-dotenv "agent-skill-handler@git+https://github.com/wnagele/agent-skill-handler.git"
+```
+
+Invoke scripts with the venv interpreter (`.venv/bin/python3 scripts/mealie.py ...`). If the packages are already installed on the system `python3`, you can call `python3 scripts/mealie.py ...` directly.
 
 ## Setup
 
